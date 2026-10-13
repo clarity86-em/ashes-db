@@ -24,6 +24,23 @@ function client(db,storage=memory()){
  const c=new CloudSync({map,storage,fetcher:async(_,options)=>workspaceRequest(req(options.method,options.body?JSON.parse(options.body):undefined),{db,user:users.a,map}),onState:s=>observed.states.push(s),onStatus:s=>observed.statuses.push(s),onConflict:s=>observed.conflicts.push(...s)});
  return {c,observed,storage};
 }
+test('default browser fetch keeps its global receiver when loading and saving',async t=>{
+ const db=database(),methods=[];
+ t.after(()=>db.close());
+ t.mock.method(globalThis,'fetch',async function(url,options){
+  assert.ok(this===globalThis,'browser fetch requires its global receiver');
+  assert.equal(url,'/api/workspace');methods.push(options.method);
+  return workspaceRequest(req(options.method,options.body?JSON.parse(options.body):undefined),{db,user:users.a,map});
+ });
+ const c=new CloudSync({map,storage:memory(),onState:()=>{},onStatus:()=>{},onConflict:()=>{}});
+ t.after(()=>clearTimeout(c.timer));
+ await c.start(snapshot());
+ assert.deepEqual(methods,['GET','PUT']);assert.equal(c.pending,false);
+ const edited=clone(c.current);edited.decks[0].notes='saved with browser fetch';c.queue(edited);await c.flush();
+ assert.equal(c.pending,false);assert.equal(c.revision,2);
+ const saved=await (await workspaceRequest(req('GET'),{db,user:users.a,map})).json();
+ assert.equal(saved.state.decks[0].notes,'saved with browser fetch');
+});
 test('cloud API requires login, isolates accounts, rejects cross-origin and stale-account writes',async()=>{
  const db=database(),state=snapshot();
  assert.equal((await workspaceRequest(req('GET'),{db,user:null,map})).status,401);

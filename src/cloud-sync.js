@@ -1,7 +1,7 @@
 import {sameWorkspace,mergeWorkspaces,normalizeWorkspace} from './cloud-state.js';
 
 export class CloudSync {
-  constructor({map,storage,fetcher=fetch,onState,onStatus,onConflict,onCacheError=()=>{}}) {
+  constructor({map,storage,fetcher=(...args)=>globalThis.fetch(...args),onState,onStatus,onConflict,onCacheError=()=>{}}) {
     Object.assign(this,{map,storage,fetcher,onState,onStatus,onConflict,onCacheError});
     this.ready=false;this.busy=false;this.revision=0;this.base=null;this.current=null;this.timer=null;this.user=null;
   }
