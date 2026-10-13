@@ -88,3 +88,6 @@
 @media(max-width:700px){.workspace{display:flex;flex-direction:column}.card-peek:not(.touch-peek) .peek-content{grid-template-columns:minmax(0,110px) minmax(0,1fr)}}
 
 .set-group-heading{margin:0;padding:14px 24px;font-size:14px;font-weight:650;background:#edf2f5;color:var(--ink);border-top:1px solid var(--line)}.collection-group{border:0;padding:0;margin:20px 0}.collection-group legend{font-size:14px;font-weight:650;margin-bottom:10px;padding:0}.collection-group .collection-list{margin-top:0}
+
+/* Reserve room for five cost symbols plus counts/separators; names use the remaining width. */
+@media(min-width:851px){.cards-table .cost-col,.browse-mode .cards-table .cost-col{width:270px;min-width:270px;max-width:none}}
