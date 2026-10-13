@@ -3,7 +3,7 @@
 // Corpse roster also documented in https://ashesdb-media.plaidhatgames.com/pdf/faq7.pdf
 export const REPRINT_SETS = [
   {
-    "name": "The Corpse of Viros",
+    "name": "Red Rains: The Corpse of Viros",
     "stub": "the-corpse-of-viros",
     "phoenixborn": [
       "noah-redmoon",
@@ -14,7 +14,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-corpse-viros/"
   },
   {
-    "name": "The Frostwild Scourge",
+    "name": "Red Rains: The Frostwild Scourge",
     "stub": "the-frostwild-scourge",
     "phoenixborn": [
       "aradel-summergaard",
@@ -25,7 +25,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-red-rains-frostwild-scourge/"
   },
   {
-    "name": "The Blight of Neverset",
+    "name": "Red Rains: The Blight of Neverset",
     "stub": "the-blight-of-neverset",
     "phoenixborn": [
       "maeoni-viper",
@@ -36,7 +36,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-red-rains-the-blight-of-neverset/"
   },
   {
-    "name": "The Siege of Lordswall",
+    "name": "Red Rains: The Siege of Lordswall",
     "stub": "the-siege-of-lordswall",
     "phoenixborn": [
       "odette-diamondcrest",
@@ -47,7 +47,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-red-rains-the-siege-of-lordswall/"
   },
   {
-    "name": "The Spawn of Shadowreck",
+    "name": "Red Rains: The Spawn of Shadowreck",
     "stub": "the-spawn-of-shadowreck",
     "phoenixborn": [
       "rimea-careworn",
@@ -58,7 +58,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-red-rains-the-spawn-of-shadowreck/"
   },
   {
-    "name": "The Flood of Moon Cove",
+    "name": "Red Rains: The Flood of Moon Cove",
     "stub": "the-flood-of-moon-cove",
     "phoenixborn": [
       "echo-greystorm",
@@ -69,7 +69,7 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/ashes-reborn-red-rains-the-flood-of-moon-cove/"
   },
   {
-    "name": "The End of Argaia",
+    "name": "Red Rains: The End of Argaia",
     "stub": "the-end-of-argaia",
     "phoenixborn": [
       "jericho-reborn",
@@ -80,13 +80,14 @@ export const REPRINT_SETS = [
     "source": "https://www.plaidhatgames.com/product/pre-order-ashes-reborn-red-rains-the-end-of-argaia/"
   }
 ];
+const redRainsReleases = new Map(REPRINT_SETS.map(({stub,name})=>[stub,{stub,name,group:"Red Rains"}]));
 const extraReleases = new Map();
 for (const {stub,name,phoenixborn} of REPRINT_SETS) {
  for (const id of phoenixborn) extraReleases.set(id,[...(extraReleases.get(id)||[]),{stub,name}]);
 }
 export function cardReleases(card) {
  const releases=[...(card?.release?[card.release]:[]),...(extraReleases.get(card?.stub)||[])];
- return [...new Map(releases.map(r=>[r.stub,r])).values()];
+ return [...new Map(releases.map(r=>[r.stub,redRainsReleases.get(r.stub)||{...r,group:"기본판 · 기타 확장"}])).values()];
 }
 export const inRelease = (card,stub) => cardReleases(card).some(r=>r.stub===stub);
 export const isOwnedCard = (card,owned) => cardReleases(card).some(r=>owned.includes(r.stub));
