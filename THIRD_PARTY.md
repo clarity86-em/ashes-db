@@ -23,6 +23,14 @@ Ashes, Ashes Reborn, Ashes Ascendancy, game rules, card text and card illustrati
 
 ## Interface
 
+### Ashes dice and action symbols
+
+`src/ashes-symbols.js` contains SVG outlines extracted from Ashteki's `client/assets/fonts/phg-ashes.woff` at revision `13b9078f1b63f7ff11b2f27b89da71a163498b12` (Git blob `43f52f59c68c5c69a24885f8a9f9dd9b92f2a9a3`). Character mappings come from `client/styles/_phg-ashes.scss`; printed die colours follow `client/Components/GameBoard/Die.scss` at the same revision. Outlines are unchanged, with SVG view boxes added for sizing. No font download is required at runtime.
+
+Original font notice: "Copyright (C) 2026 by original authors @ fontello.com". The upstream repository is AGPL-3.0. Ashes symbols remain game content belonging to Plaid Hat Games; the repository's software license does not grant separate rights to the game's intellectual property.
+
+Source: https://github.com/Ashteki/ashteki/tree/13b9078f1b63f7ff11b2f27b89da71a163498b12/client/assets/fonts
+
 The interface is independently implemented. NetrunnerDB, ArkhamDB and MarvelCDB inspired its searchable tables and adjacent deck editor. No source code, logos or stylesheets from those sites are included.
 
 Optional font CSS is loaded from Google Fonts (Inter and Noto Sans KR, SIL Open Font License). System fonts are the fallback; no font files are redistributed.

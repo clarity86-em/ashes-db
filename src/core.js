@@ -1,8 +1,8 @@
 export const MAGIC = {
- natural: ['자연','Natural','#356443','✿'], ceremonial:['의식','Ceremonial','#85404d','◆'],
- charm:['매혹','Charm','#ac467b','♥'], illusion:['환영','Illusion','#657aa9','◈'],
- divine:['신성','Divine','#ab842c','☀'], sympathy:['공감','Sympathy','#b65730','✦'],
- time:['시간','Time','#466d88','◷'], artifice:['기계','Artifice','#79704f','⚙'], astral:['천체','Astral','#635397','✧']
+ natural: ['자연','Natural','#356443'], ceremonial:['의식','Ceremonial','#85404d'],
+ charm:['매혹','Charm','#ac467b'], illusion:['환영','Illusion','#657aa9'],
+ divine:['신성','Divine','#ab842c'], sympathy:['공감','Sympathy','#b65730'],
+ time:['시간','Time','#466d88'], artifice:['기계','Artifice','#79704f'], astral:['천체','Astral','#635397']
 };
 export const TYPES = {'Ally':'동료','Ready Spell':'준비 주문','Action Spell':'행동 주문','Reaction Spell':'반응 주문','Alteration Spell':'변화 주문','Phoenixborn':'피닉스본','Conjuration':'소환물','Conjured Alteration Spell':'소환 변화 주문'};
 export const PLAYABLE = ['Ally','Ready Spell','Action Spell','Reaction Spell','Alteration Spell'];
