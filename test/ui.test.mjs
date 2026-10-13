@@ -69,3 +69,19 @@ test('cost display preserves alternative payments and costs requiring both actio
  assert.deepEqual(faceNames($('td.cost-col .cost-alternatives')),['charm:class','time:class']);
  assert.deepEqual(faceNames($('.card-mobile-cost')),faceNames($('td.cost-col')));
 });
+
+test('Red Rains expansion displays all four reprinted heroes and owns them independently of original sets',async t=>{
+ const w=await setup();t.after(()=>w.happyDOM.close());const $=s=>w.document.querySelector(s);
+ const expected=['brennen-blackcloud','coal-roarkwin','jessa-na-ni','noah-redmoon'];
+ click(w,'[data-nav="sets"]');input(w,'#sets-query','Brennen');
+ assert.ok($('[data-set-row="the-corpse-of-viros"]'));
+ click(w,'[data-owned="the-corpse-of-viros"]');click(w,'[data-set-cards="the-corpse-of-viros"]');
+ assert.deepEqual([...w.document.querySelectorAll('.set-heroes [data-preview]')].map(e=>e.dataset.preview).sort(),expected);
+ for(const id of expected)assert.ok($(`[data-row="${id}"]`));
+ click(w,'.set-heroes [data-preview="noah-redmoon"]');
+ assert.ok($('#preview [data-set-cards="master-set"]'));assert.ok($('#preview [data-set-cards="the-corpse-of-viros"]'));
+ click(w,'[data-nav="sets"]');click(w,'[data-action="owned-builder"]');click(w,'[data-action="hero"]');
+ assert.deepEqual([...w.document.querySelectorAll('[data-hero]')].map(e=>e.dataset.hero).sort(),expected);
+ click(w,'[data-hero="noah-redmoon"]');assert.ok(w.document.body.textContent.includes('Noah Redmoon'));
+ const saved=JSON.parse(w.localStorage.getItem('ashes-db-v1'));assert.deepEqual(saved.owned,['the-corpse-of-viros']);assert.equal(saved.decks.find(d=>d.id===saved.active).phoenixborn,'noah-redmoon');
+});

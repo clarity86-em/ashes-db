@@ -1,3 +1,5 @@
+import {cardReleases,inRelease,isOwnedCard} from './reprints.js';
+export {cardReleases,inRelease,isOwnedCard} from './reprints.js';
 export const MAGIC = {
  natural: ['자연','Natural','#356443'], ceremonial:['의식','Ceremonial','#85404d'],
  charm:['매혹','Charm','#ac467b'], illusion:['환영','Illusion','#657aa9'],
@@ -47,10 +49,10 @@ export function filterCards(cards,{query='',type='',magic='',release='',compatib
   if(type==='playable'&&!PLAYABLE.includes(c.type))return false;
   if(type&&type!=='playable'&&c.type!==type)return false;
   if(magic&&!c.dice?.includes(magic)&&!c.altDice?.includes(magic))return false;
-  if(release&&c.release?.stub!==release)return false;
-  if(ownedOnly&&!owned.includes(c.release?.stub))return false;
+  if(release&&!inRelease(c,release))return false;
+  if(ownedOnly&&!isOwnedCard(c,owned))return false;
   if(compatible&&c.phoenixborn&&c.phoenixborn!==pb?.name)return false;
-  const hay=`${c.name} ${c.text||''} ${c.type} ${TYPES[c.type]||''} ${c.release?.name||''} ${c.phoenixborn||''}`.toLowerCase();
+  const hay=`${c.name} ${c.text||''} ${c.type} ${TYPES[c.type]||''} ${cardReleases(c).map(r=>r.name).join(' ')} ${c.phoenixborn||''}`.toLowerCase();
   return terms.every(t=>hay.includes(t));
  });
 }

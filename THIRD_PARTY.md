@@ -38,3 +38,7 @@ Optional font CSS is loaded from Google Fonts (Inter and Noto Sans KR, SIL Open 
 ## Online hosting and authentication
 
 The online version uses the Sites Vinext starter with React, Vinext and Cloudflare D1. Dependency licenses are retained by the package manager; the Sites Vite plugin license is kept in `build/sites-vite-plugin.LICENSE`. ChatGPT sign-in is platform-managed. No login secrets or personal decks are included in this source repository.
+
+## Red Rains Phoenixborn product membership
+
+`src/reprints.js` adds the four physically included Phoenixborn for each of the seven Red Rains expansions, verified against Plaid Hat Games product listings (URLs recorded alongside each roster) and the official FAQ: https://ashesdb-media.plaidhatgames.com/pdf/faq7.pdf. These supplement, rather than replace, each canonical card’s original release. The catalogue and collection filters merge memberships without duplicating cards. Card artwork continues to use the canonical CDN image, not a separate alternate-art printing. This supplement only covers Phoenixborn reprints; it is not a complete physical inventory of every reprinted card.

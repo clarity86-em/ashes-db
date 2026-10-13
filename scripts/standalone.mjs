@@ -1,5 +1,5 @@
 import {readFile,writeFile} from 'node:fs/promises';
-const core=(await readFile('src/core.js','utf8')).replace(/^export /gm,'');
+const core=(await Promise.all(['src/reprints.js','src/core.js'].map(p=>readFile(p,'utf8')))).join('\n').replace(/^import .*?;\n/gm,'').replace(/^export \{.*?;\n/gm,'').replace(/^export /gm,'');
 const symbols=(await Promise.all(['src/ashes-symbols.js','src/symbols.js'].map(p=>readFile(p,'utf8')))).join('\n').replace(/^import .*?;\n/gm,'').replace(/^export /gm,'');
 const data=await Promise.all(['cards','precons','meta'].map(async k=>JSON.parse(await readFile(`data/${k}.json`,'utf8'))));
 let app=(await readFile('src/app.js','utf8')).replace(/^import .*?;\n/gm,'').replace("const responses=await Promise.all(['cards','precons','meta'].map(async p=>{const r=await fetch(`./data/${p}.json`);if(!r.ok)throw Error('카드 데이터 파일을 읽을 수 없습니다.');return r.json();}));",'const responses=window.ASHES_DATA;');
