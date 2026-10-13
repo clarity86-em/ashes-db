@@ -1,0 +1,20 @@
+{
+  "name": "ashes-db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An Ashes deck builder with a familiar database-style interface",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "update-data": "node scripts/update-data.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.8.4"
+  }
+}
