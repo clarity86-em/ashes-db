@@ -26,3 +26,7 @@ Ashes, Ashes Reborn, Ashes Ascendancy, game rules, card text and card illustrati
 The interface is independently implemented. NetrunnerDB, ArkhamDB and MarvelCDB inspired its searchable tables and adjacent deck editor. No source code, logos or stylesheets from those sites are included.
 
 Optional font CSS is loaded from Google Fonts (Inter and Noto Sans KR, SIL Open Font License). System fonts are the fallback; no font files are redistributed.
+
+## Online hosting and authentication
+
+The online version uses the Sites Vinext starter with React, Vinext and Cloudflare D1. Dependency licenses are retained by the package manager; the Sites Vite plugin license is kept in `build/sites-vite-plugin.LICENSE`. ChatGPT sign-in is platform-managed. No login secrets or personal decks are included in this source repository.

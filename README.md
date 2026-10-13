@@ -1,79 +1,138 @@
-# Ashes DB
+# vinext-starter
 
-넷러너DB처럼 카드 목록과 덱을 나란히 보며 편집하는 개인용 애쉬즈 덱 빌더입니다. 한국어 UI와 영문 카드 데이터를 사용합니다. 별도 서버·계정·데이터베이스 없이 GitHub Pages에서 실행됩니다.
+A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
 
-## 기능
+## Prerequisites
 
-- 이름·효과 검색, 마법·종류·확장·보유 확장·전용 카드 호환 필터
-- 카드 이미지와 규칙 텍스트 상세 보기
-- 0/1/2/3 수량 버튼, 덱 종류별 목록, 덱 이름·메모 편집
-- 피닉스본 변경, 주사위 10개 구성, First Five 선택
-- 30장 / 3장 제한 / 전용 카드 합계·호환 / First Five 기본 검사
-- 대전 모드에서 데이터에 기록된 Chained 카드 확인
-- 관련 소환물 목록 자동 생성 (소환물은 30장에 포함하지 않음)
-- 실제 기본 덱 60개 불러오기 (Red Rains 포함)
-- 여러 덱 자동 저장·복제·삭제, JSON 백업/가져오기, 텍스트 내보내기
-- 반응형 모바일 UI, 키보드 검색 단축키 `/`
+- Node.js `>=22.13.0`
+- Portable: Windows, macOS, or Linux; no Bash required
+- Managed Linux: managed Linux runtime with Bash, `flock`, `curl`, `sha256sum`, and GNU `timeout`
+- Git is required only for publishing
 
-## 실행
+## Sites Lifecycle
 
-Node.js 22 이상:
+The Sites initializer copies the shared starter and selects managed-linux only when `SITES_MANAGED_LINUX_CONTAINER=1`; otherwise it selects portable. It saves the selection only in ignored `.sites-runtime/execution-profile.json`. Both profiles copy/configure first, then use the plugin's separate `install-dependencies.mjs` step to measure installation independently. Edit source under `app/` and follow the Sites skill for installation, preview, builds, and publishing.
 
-```sh
-npm ci
-npm run dev
+Run `node <plugin-root>/scripts/configure-execution-profile.mjs` only when the profile is unknown for the current checkout and environment. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
+
+This starter does not use `wrangler.jsonc`.
+
+`install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
+
+- **Portable:** Preserve host HOME, npm cache, registry, proxy, temporary paths, retry/concurrency settings, and lifecycle-script policy. Use `--prefer-offline --no-audit --no-fund`.
+- **Managed Linux:** Use the existing project-local HOME/cache/tmp setup and Linux install lock, tarball preflight, and timeout. Restore the image-seeded npm cache only when its lockfile hash matches; retain network fallback. Builds keep their existing timeout. These helpers are not invoked by the portable profile.
+
+`scripts/sites-env.mjs` preserves the caller's HOME, npm cache, proxy, XDG, and temporary-directory configuration while defaulting Wrangler and Miniflare state to the checkout. If npm reports an unwritable cache, select a writable path with `npm_config_cache` for that install. The `dev` and `start` scripts also keep Wrangler logs inside the checkout. Generated `.sites-runtime/` and `.wrangler/` directories are disposable and ignored by Git.
+
+On portable, `npm run dev` uses `vinext dev` with HMR, starting at port 5173. Vinext records the running server in ignored `.vinext/` state, rejects an ordinary duplicate launch, and recovers stale state after a stopped process; exactly simultaneous starts can race. Pass `--port <port>` or `--hostname <host>` after `npm run dev --` when needed; keep portable previews on loopback.
+
+For browser QA on managed Linux, use `sites-preview start`. The project's dev script runs Vite and accepts the supervisor's `--host 0.0.0.0 --port 4173 --strictPort` arguments. The internal browser uses `http://terminal.local:4173/`; it is not a user-facing URL. The supervisor owns the preview lifecycle. The ignored local profile survives the supervisor's cleared process environment.
+
+The portable profile simulates ChatGPT sign-in only for loopback development requests. Visit `/signin-with-chatgpt?return_to=/` to sign in as `local_seedy` (`seedy@sites.test`, display name `Seedy`) and `/signout-with-chatgpt?return_to=/` to sign out. The development cookie preserves that identity across server restarts. Mock auth is disabled in the managed-linux profile and is not included in production builds; hosted authentication remains dispatch-owned.
+
+The Worker uses `vinext/server/fetch-handler`, including Vinext's config-aware image handling. After building, `npm start` runs that Worker locally through Wrangler on `127.0.0.1`, sharing `.wrangler/state` with dev preview and local D1 migrations; it does not deploy the site or simulate sign-in. Use the URL printed by the server. Pass `npm start -- --port <port>` to select a different built-preview port.
+
+Local previews use Miniflare's placeholder `Request.cf` metadata without a network lookup. Set `CLOUDFLARE_CF_FETCH_ENABLED=true` to opt into fetching preview metadata; this setting does not change hosted request metadata.
+
+Local tool usage metrics are disabled by default. Set `WRANGLER_SEND_METRICS=true` to opt in.
+
+## Included Shape
+
+- edit site code under `app/`
+- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
+- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
+- `vite.config.ts` simulates declared bindings for local development
+- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
+- `db/schema.ts` starts intentionally empty
+- `@cloudflare/workers-types` provides Worker types; `cloudflare-env.d.ts` declares optional `DB`/`BUCKET` bindings—update these declarations if binding names change
+- `examples/d1/` contains an optional D1 example surface
+- `drizzle.config.ts` supports local migration generation when needed
+
+## Workspace Auth Headers
+
+Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
+
+The user ID is stable for the same user on the same Site and different across Sites. Use it as the durable user key; use email and name for display or contact purposes.
+
+SIWC-authenticated workspace sites may also receive `oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty `name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
+
+Treat the full name as optional and fall back to email when it is absent:
+
+```tsx
+import { headers } from "next/headers";
+
+export default async function Home() {
+  const requestHeaders = await headers();
+  const userId = requestHeaders.get("oai-authenticated-user-id");
+  const email = requestHeaders.get("oai-authenticated-user-email");
+  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
+  const fullName =
+    encodedFullName &&
+    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
+      "percent-encoded-utf-8"
+      ? decodeURIComponent(encodedFullName)
+      : null;
+
+  const displayName = fullName ?? email;
+  // ...
+}
 ```
 
-`http://localhost:5173`에서 열 수 있습니다. 브라우저가 ES modules와 데이터 파일을 읽어야 하므로 index.html을 file://로 직접 열면 안 됩니다. 앱 자체에는 런타임 npm 의존성이 없습니다.
+## Optional Dispatch-Owned ChatGPT Sign-In
+
+Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs optional or required ChatGPT sign-in:
+
+- Use `getChatGPTUser()` for optional signed-in UI.
+- Use the returned `userId` as the stable user key for user-owned records; do not use email as a durable identifier.
+- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send anonymous visitors through Sign in with ChatGPT.
+- In a Server Component, start sign-in with `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper module is server-only; do not import it into a Client Component.
+- Do not use `fetch`, XHR, a client-side router, or a framework link that can prefetch the sign-in route. SIWC must start as a top-level navigation.
+- Never request the AuthAPI authorization endpoint directly. The dispatch-owned `/signin-with-chatgpt` route must start the SIWC flow.
+- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
+- Pass a same-origin relative `returnTo` path for the destination after sign-in or sign-out. The helper validates and safely encodes it.
+- Mark protected pages with `export const dynamic = "force-dynamic"` because they depend on per-request identity headers.
+
+Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the OAuth cookies, and identity header injection. Do not implement app routes for those reserved paths. Routes that do not import and call the helper remain anonymous-compatible.
+
+SIWC establishes identity only; it does not prove workspace membership. Use the Sites hosting platform's access policy controls for workspace-wide restrictions, or enforce explicit server-side membership or allowlist checks.
+
+Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
+
+## Local D1 migrations
+
+For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:
 
 ```sh
-npm test
-npm run build
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
 ```
 
-미리보기용 단일 HTML 파일은 `node scripts/standalone.mjs`로 생성합니다. 상위 폴더의 `Ashes_DB.html`을 직접 열면 됩니다. 카드 데이터는 내장되고, 이미지·폰트는 인터넷 연결을 사용합니다.
+Replace the filename with the pending migration and `DB` with your D1 binding name if different. Use `.wrangler/state`, not `.wrangler/state/v3`; Wrangler adds the versioned directories. Do not replay migrations already applied locally. This updates only the preview database; publishing applies production migrations separately.
 
-`dist/`를 어떤 정적 웹 호스팅에도 올릴 수 있습니다. 하위 경로 배포를 지원합니다.
+## Diagnostic Commands
 
-## GitHub Pages
+- `npm run install:ci`: perform the one locked dependency install
+- `npm run dev`: start the Vite/Vinext development server
+- `npm run build`: build the deployable Sites artifact
+- `npm run start`: preview the built Worker locally with D1/R2 support
+- `npm run db:generate`: generate Drizzle migrations after schema changes
 
-1. GitHub에서 `ashes-db` 저장소를 만듭니다.
-2. 이 프로젝트를 `main` 브랜치에 올립니다.
-3. 저장소 Settings → Pages → Source를 **GitHub Actions**로 설정합니다.
-4. Actions의 **Check and deploy GitHub Pages**를 실행합니다. 이후 main에 push할 때 자동 배포됩니다.
+When using the Sites plugin, follow its skill instructions for installation, builds, and publishing. These npm commands remain available for standalone use.
 
-예상 주소는 `https://clarity86-em.github.io/ashes-db/`이며, 실제 배포 전에는 이 URL이 활성화되지 않습니다. 다른 이름/계정에 올리면 주소도 달라집니다.
+The portable build runs Vinext directly without a host `timeout` command. The managed-linux build uses `scripts/build-verified.sh` and its existing `SITES_BUILD_TIMEOUT` setting.
 
-## 저장 방식
+## Learn More
 
-덱은 현재 기기·브라우저·도메인의 localStorage에만 저장됩니다. JSON 백업으로 기기 간 이동할 수 있습니다. 로그인, 클라우드 동기화, 공개 덱 게시판, 추천/댓글 기능은 이 버전에 포함하지 않습니다. HTTP localhost와 실제 Pages 도메인은 저장 공간이 서로 다릅니다.
+- [vinext Documentation](https://github.com/cloudflare/vinext)
+- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
 
-손상된 저장 데이터는 자동 덮어쓰지 않고 원본 다운로드를 안내합니다. 이후 사용자가 편집하면 현재 화면의 덱 상태로 저장됩니다.
+## 온라인 버전 개발과 배포
 
-## 카드 데이터
+- `app/`: 로그인 확인과 온라인 앱 진입점, `/api/workspace` 라우트
+- `server/workspace.js`: 계정별 접근 검사, 요청 검증, 원자적 버전 비교 저장
+- `src/cloud-state.js`, `src/cloud-sync.js`: 충돌 병합, 계정별 기기 백업, 전송 대기
+- `db/schema.ts`, `drizzle/`: D1 테이블과 이력 관리용 스키마 마이그레이션
+- `scripts/prepare-assets.mjs`: 같은 UI/카드 원본을 온라인 앱의 정적 자산으로 복사
 
-`data/meta.json`에 기록된 Ashteki 커밋의 스냅샷입니다. 기본 Reborn/Ascendancy 데이터와 Natural Magic 확장 카드가 들어 있습니다. 미출시/지원하지 않는 데이터 파일을 자동으로 합치지 않습니다. 업데이트 후에는 달라진 카드와 규칙을 검토하세요.
+`pnpm run build`는 온라인 Worker를 빌드합니다. `pnpm run build:static`은 GitHub Pages용 정적 파일을 빌드합니다. 둘 다 `dist/`를 사용하므로 동시에 실행하지 마세요. 온라인 배포는 Sites 워크플로를 사용하고 GitHub Actions는 정적 버전을 배포합니다. `.openai/hosting.json`의 프로젝트 ID는 공개 설정값이며 인증 정보가 아닙니다. 런타임 인증 정보나 데이터베이스 파일을 GitHub에 올리지 마세요.
 
-```sh
-npm run update-data              # 기록된 커밋으로 재생성
-npm run update-data -- --latest  # upstream master에서 의도적으로 갱신
-npm test
-```
-
-- 일부 소스 카드에 효과 텍스트가 없습니다. 원문 링크와 카드 이미지를 제공합니다.
-- 4개 End of Argaia 기본 덱은 소스에 First Five가 없어서 사용자가 직접 선택해야 합니다.
-- 소환물 개수는 데이터의 copies/연결 관계 기준입니다. 텍스트에만 있는 특수 소환 관계는 직접 확인하세요.
-- 전체 대회 금지/제한/로테이션, 특수 포맷과 플레이어별 예외, First Five의 주사위 지불 가능성까지 판정하지 않습니다.
-- 카드 이미지는 외부 CDN에서 불러옵니다. 오프라인에서는 텍스트 데이터와 덱 편집은 가능하지만 이미지·외부 폰트는 보장하지 않습니다.
-
-## 개발 구조
-
-- `src/core.js`: 검색·덱 모델·검사·입출력 (DOM과 분리)
-- `src/app.js`: 브라우저 UI와 저장
-- `src/styles.css`: 반응형 UI
-- `test/`: 덱 규칙·가져오기 안전성·DOM 인터랙션 검사
-- `scripts/`: 개발 서버, 빌드, 데이터 갱신
-
-## 라이선스
-
-AGPL-3.0-or-later. 카드·일러스트의 권리는 별도이며 Plaid Hat Games에 있습니다. [THIRD_PARTY.md](THIRD_PARTY.md)를 확인하세요.
+현재 서버 저장은 최대 200개 덱, 전체 5 MB를 지원합니다. 편집 중인 미완성 덱도 저장할 수 있습니다. 클라이언트가 보내는 계정 ID를 소유권으로 신뢰하지 않고 플랫폼에서 확인한 로그인 ID로 각 DB 요청을 제한합니다. 로그아웃/계정 전환 후 미전송 데이터가 다른 계정에 업로드되지 않도록 검사합니다.
