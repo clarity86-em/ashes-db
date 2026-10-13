@@ -32,7 +32,7 @@ test('cost display preserves alternative payments and costs requiring both actio
  const faceNames=el=>[...el.querySelectorAll('[data-symbol]')].map(e=>e.dataset.symbol);
  input(w,'#query','adrenaline rush');
  assert.deepEqual(faceNames($('td.cost-col .cost-alternatives')),['ceremonial:power','sympathy:power']);
- assert.match($('td.cost-col .cost-alternatives').textContent,/또는/);
+ assert.equal($('td.cost-col .cost-or').textContent,'/');
  assert.deepEqual([...$('td.cost-col .cost-list').children].filter(e=>e.classList.contains('cost-item')).flatMap(faceNames),['side','basic']);
  input(w,'#query','drain vitality');assert.deepEqual(faceNames($('td.cost-col .cost-alternatives')),['main','side']);
  input(w,'#query','generosity');

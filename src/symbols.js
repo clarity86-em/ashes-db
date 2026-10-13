@@ -29,7 +29,7 @@ export function textHTML(value){
 
 export function costHTML(card){
   const part=value=>{
-    if(Array.isArray(value))return `<span class="cost-alternatives" role="group" aria-label="다음 중 하나">${value.map(part).join('<span class="cost-or">또는</span>')}</span>`;
+    if(Array.isArray(value))return `<span class="cost-alternatives" role="group" aria-label="다음 중 하나">${value.map(part).join('<span class="cost-or" aria-hidden="true">/</span><span class="sr-only">또는</span>')}</span>`;
     const quantity=String(value).match(/^(\d+|X)\s+\[\[([^\]]+)\]\]$/);
     return `<span class="cost-item">${quantity?`<b class="cost-count">${quantity[1]}</b>${symbolHTML(quantity[2])}`:textHTML(value)}</span>`;
   };
@@ -37,5 +37,5 @@ export function costHTML(card){
 }
 
 export function symbolGuideHTML(){
-  return `<p class="modal-intro">주사위는 왼쪽이 파워 면, 오른쪽이 클래스 면입니다. 카드 비용에는 필요한 면과 개수를 표시합니다.</p><div class="symbol-guide">${Object.entries(MAGIC).map(([magic,info])=>`<div class="symbol-guide-row"><strong>${info[0]}<small>${info[1]}</small></strong><span>${symbolHTML(magic+':power')} 파워</span><span>${symbolHTML(magic+':class')} 클래스</span></div>`).join('')}</div><div class="action-guide">${Object.entries(SYMBOL_LABELS).map(([token,label])=>`<span>${symbolHTML(token)} ${label}</span>`).join('')}</div><p class="micro">‘또는’으로 묶인 비용은 그중 하나를 선택합니다.</p>`;
+  return `<p class="modal-intro">주사위는 왼쪽이 파워 면, 오른쪽이 클래스 면입니다. 카드 비용에는 필요한 면과 개수를 표시합니다.</p><div class="symbol-guide">${Object.entries(MAGIC).map(([magic,info])=>`<div class="symbol-guide-row"><strong>${info[0]}<small>${info[1]}</small></strong><span>${symbolHTML(magic+':power')} 파워</span><span>${symbolHTML(magic+':class')} 클래스</span></div>`).join('')}</div><div class="action-guide">${Object.entries(SYMBOL_LABELS).map(([token,label])=>`<span>${symbolHTML(token)} ${label}</span>`).join('')}</div><p class="micro">‘/’로 연결된 비용은 그중 하나를 선택합니다.</p>`;
 }
