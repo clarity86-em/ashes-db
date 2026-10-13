@@ -38,7 +38,7 @@ test('collection choices sync to the account and an empty collection never inclu
 });
 test('UI search, quantity editing, First Five and persistence',async()=>{const w=await setup();const $=s=>w.document.querySelector(s);assert.equal($('#deck-name').value,'The Mist Guardian');assert.ok($('.hero-banner').textContent.includes('Aradel'));input(w,'#query','abundance');assert.equal(w.document.querySelectorAll('[data-row]').length,1);click(w,'[data-qty="abundance"][data-n="2"]');assert.ok($('[data-remove="abundance"]'));input(w,'#deck-name','My <script>deck</script>');let saved=JSON.parse(w.localStorage.getItem('ashes-db-v1'));let d=saved.decks.find(d=>d.id===saved.active);assert.equal(d.cards.abundance,2);assert.equal(d.name,'My <script>deck</script>');const first=$('[data-first].is-first').dataset.first;click(w,`[data-first="${first}"]`);click(w,'[data-first="abundance"]');saved=JSON.parse(w.localStorage.getItem('ashes-db-v1'));d=saved.decks.find(d=>d.id===saved.active);assert.ok(d.firstFive.includes('abundance'));const w2=await setup(w.localStorage.getItem('ashes-db-v1'));assert.equal(w2.document.querySelector('#deck-name').value,'My <script>deck</script>');assert.equal(w2.document.querySelectorAll('script').length,0);await w.happyDOM.close();await w2.happyDOM.close();});
 test('UI hero, dice, clone and deletion workflow',async()=>{const w=await setup();const $=s=>w.document.querySelector(s);click(w,'[data-action="hero"]');click(w,'[data-hero="coal-roarkwin"]');assert.ok($('.issues').textContent.includes('전용'));click(w,'[data-action="dice"]');const d=JSON.parse(w.localStorage.getItem('ashes-db-v1')).decks[0];const first=Object.keys(d.dice)[0];const initial=d.dice[first];click(w,`[data-die="${first}"][data-delta="-1"]`);assert.equal($(`#die-${first}`).textContent,String(initial-1));click(w,'[data-action="close"]');click(w,'[data-action="duplicate"]');click(w,'[data-nav="decks"]');assert.equal(w.document.querySelectorAll('.saved-deck').length,2);click(w,'[data-delete]');click(w,'[data-action="close"]');assert.equal(w.document.querySelectorAll('.saved-deck').length,2);click(w,'[data-delete]');click(w,'[data-confirm-delete]');assert.equal(w.document.querySelectorAll('.saved-deck').length,1);await w.happyDOM.close();});
-test('UI base-deck chooser, mobile card modal, collection filtering',async()=>{const w=await setup();w.innerWidth=390;click(w,'[data-action="precons"]');input(w,'#precon-query','issa');assert.ok(w.document.querySelector('[data-precon]'));click(w,'[data-precon]');assert.ok(w.document.querySelector('.hero-banner').textContent.includes('Issa'));click(w,'[data-nav="cards"]');click(w,'[data-preview]');assert.ok(w.document.querySelector('#modal').open);assert.ok(w.document.querySelector('.card-modal'));click(w,'#close-modal');const owned=w.document.querySelector('#owned-only');owned.checked=true;owned.dispatchEvent(new w.Event('change'));assert.ok(w.document.querySelector('.no-results'));click(w,'[data-action="reset-filters"]');assert.ok(w.document.querySelector('[data-row]'));await w.happyDOM.close();});
+test('UI base-deck chooser, mobile card modal, collection filtering',async()=>{const w=await setup();w.innerWidth=390;click(w,'[data-action="precons"]');input(w,'#precon-query','issa');assert.ok(w.document.querySelector('[data-precon]'));click(w,'[data-precon]');assert.ok(w.document.querySelector('.hero-banner').textContent.includes('Issa'));click(w,'[data-nav="cards"]');click(w,'[data-preview]');assert.ok(w.document.querySelector('#card-peek'));assert.equal(w.document.querySelector('#modal').open,false);click(w,'[data-preview]');assert.ok(w.document.querySelector('#modal').open);assert.ok(w.document.querySelector('.card-modal'));click(w,'#close-modal');const owned=w.document.querySelector('#owned-only');owned.checked=true;owned.dispatchEvent(new w.Event('change'));assert.ok(w.document.querySelector('.no-results'));click(w,'[data-action="reset-filters"]');assert.ok(w.document.querySelector('[data-row]'));await w.happyDOM.close();});
 test('damaged storage is preserved and recovery is offered',async()=>{const raw='{broken';const w=await setup(raw);assert.equal(w.localStorage.getItem('ashes-db-v1'),raw);assert.ok(w.document.querySelector('#recover-data'));await w.happyDOM.close();});
 
 test('online UI saves edited decks and exposes account import and sync controls',async()=>{const w=await setup(undefined,true);assert.match(w.document.querySelector('#save-state').textContent,/내 계정에 저장/);input(w,'#deck-name','Cloud deck');input(w,'#notes','Continue on my phone');await new Promise(r=>setTimeout(r,1000));assert.equal(w.cloudSaved.decks[0].name,'Cloud deck');assert.equal(w.cloudSaved.decks[0].notes,'Continue on my phone');click(w,'#cloud-btn');assert.ok(w.document.querySelector('#modal-content').textContent.includes('owner@example.test'));assert.ok(w.document.querySelector('[data-action="sync-now"]'));assert.ok(w.document.querySelector('[data-action="import"]'));await w.happyDOM.close();});
@@ -79,9 +79,29 @@ test('Red Rains expansion displays all four reprinted heroes and owns them indep
  assert.deepEqual([...w.document.querySelectorAll('.set-heroes [data-preview]')].map(e=>e.dataset.preview).sort(),expected);
  for(const id of expected)assert.ok($(`[data-row="${id}"]`));
  click(w,'.set-heroes [data-preview="noah-redmoon"]');
- assert.ok($('#preview [data-set-cards="master-set"]'));assert.ok($('#preview [data-set-cards="the-corpse-of-viros"]'));
+ assert.ok($('#modal-content [data-set-cards="master-set"]'));assert.ok($('#modal-content [data-set-cards="the-corpse-of-viros"]'));click(w,'#close-modal');
  click(w,'[data-nav="sets"]');click(w,'[data-action="owned-builder"]');click(w,'[data-action="hero"]');
  assert.deepEqual([...w.document.querySelectorAll('[data-hero]')].map(e=>e.dataset.hero).sort(),expected);
  click(w,'[data-hero="noah-redmoon"]');assert.ok(w.document.body.textContent.includes('Noah Redmoon'));
  const saved=JSON.parse(w.localStorage.getItem('ashes-db-v1'));assert.deepEqual(saved.owned,['the-corpse-of-viros']);assert.equal(saved.decks.find(d=>d.id===saved.active).phoenixborn,'noah-redmoon');
+});
+
+test('hover peek is delayed, dismissible and desktop click opens full details',async t=>{
+ const w=await setup();t.after(()=>w.happyDOM.close());const $=s=>w.document.querySelector(s);
+ const b=$('.card-name');assert.equal($('#preview'),null);
+ b.dispatchEvent(new w.PointerEvent('pointerover',{bubbles:true,pointerType:'mouse'}));assert.equal($('#card-peek'),null);
+ await new Promise(r=>setTimeout(r,260));assert.ok($('#card-peek'));assert.equal($('#modal').open,false);
+ w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal($('#card-peek'),null);
+ b.click();assert.equal($('#modal').open,true);assert.ok($('.card-modal'));assert.equal($('#card-peek'),null);
+});
+test('touch preview switches cards, cancels on outside press, and opens details on next tap',async t=>{
+ const w=await setup();t.after(()=>w.happyDOM.close());w.innerWidth=390;const $=s=>w.document.querySelector(s);
+ const buttons=[...w.document.querySelectorAll('.card-name')];const [a,b]=buttons;
+ a.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));a.click();
+ assert.equal($('#modal').open,false);assert.ok($('#card-peek').textContent.includes(a.textContent));
+ b.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));b.click();
+ assert.equal($('#modal').open,false);assert.equal($('#card-peek [data-card-detail]').dataset.cardDetail,b.dataset.preview);
+ b.click();assert.equal($('#modal').open,true);assert.equal($('#card-peek'),null);click(w,'#close-modal');
+ a.click();w.document.body.dispatchEvent(new w.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));assert.equal($('#card-peek'),null);
+ a.click();click(w,'#card-peek [data-card-detail]');assert.equal($('#modal').open,true);
 });
